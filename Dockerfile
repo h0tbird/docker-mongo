@@ -6,11 +6,23 @@ FROM alpine:edge
 MAINTAINER Marc Villacorta Morera <marc.villacorta@gmail.com>
 
 #------------------------------------------------------------------------------
+# Environment variables:
+#------------------------------------------------------------------------------
+
+ENV ETCD_VERSION="v2.2.5" \
+    ETCD_URL="https://github.com/coreos/etcd/releases/download"
+
+#------------------------------------------------------------------------------
 # Install:
 #------------------------------------------------------------------------------
 
-RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
-RUN apk --no-cache add --update bash mongodb && rm -rf /var/cache/apk/*
+RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
+    && apk --no-cache add --update -t deps wget \
+    && apk --no-cache add --update bash mongodb \
+    && wget -q ${ETCD_URL}/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz \
+    && tar zxvf etcd-${ETCD_VERSION}-linux-amd64.tar.gz \
+    && mv etcd-${ETCD_VERSION}-linux-amd64/etcdctl /usr/local/bin/ \
+    && apk del --purge deps; rm -rf /var/cache/apk/* etcd-${ETCD_VERSION}-linux-amd64
 
 #------------------------------------------------------------------------------
 # Populate root file system:

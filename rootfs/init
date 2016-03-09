@@ -1,36 +1,36 @@
 #!/bin/bash
 
 #-----------------------------------------------------------------------------
+# Configure the service:
+#-----------------------------------------------------------------------------
+
+: ${ETCD_PATH:=/mongo}
+
+#-----------------------------------------------------------------------------
 # Functions:
 #-----------------------------------------------------------------------------
 
-function mutex_lock() {
+function token() {
 
   while true; do
 
-    LOCK=$(etcdctl get ${ETCD_PATH}/lock 2>/dev/null)
+    TKN=$(etcdctl get ${ETCD_PATH}/token 2>/dev/null); [ "$?" -eq 4 ] && {
+    etcdctl mk ${ETCD_PATH}/token '0' &>/dev/null || { sleep 1; continue; }
+    } || { [ "${TKN}" != 0 ] && return 1; }
 
-    [ "$?" -eq 4 ] && {
-      etcdctl mk ${ETCD_PATH}/lock '0' &>/dev/null || { sleep 1; continue; }
-    } || { [ "${LOCK}" != 0 ] && etcdctl watch ${ETCD_PATH}/lock &>/dev/null; }
-
-    etcdctl set --swap-with-value '0' ${ETCD_PATH}/lock '1' &>/dev/null && return 0
-    sleep 2
+    etcdctl set --swap-with-value '0' ${ETCD_PATH}/token '1' &>/dev/null && return 0
+    sleep 1
 
   done
 }
 
-function mutex_unlock() {
-  etcdctl set ${ETCD_PATH}/lock '0'
+#-----------------------------------------------------------------------------
+# Get the bootstrap token:
+#-----------------------------------------------------------------------------
+
+token && {
+  echo "Do something..."
 }
-
-#-----------------------------------------------------------------------------
-# Configure the service:
-#-----------------------------------------------------------------------------
-
-: ${BIND_IP:=127.0.0.1} && OPTS+="--bind_ip ${BIND_IP} "
-: ${PORT:=27017} && OPTS+="--port ${PORT} "
-: ${DB_PATH:=/var/lib/mongodb} && OPTS+="--dbpath ${DB_PATH} "
 
 #-----------------------------------------------------------------------------
 # Run:
