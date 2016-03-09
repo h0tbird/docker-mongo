@@ -3,4 +3,4 @@
 exec mongod \
   --bind_ip 127.0.0.1 \
   --port 27017 \
-  --dbpath /var/lib/mongodb
+  --dbpath /var/lib/mongodb "$@"
