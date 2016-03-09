@@ -10,7 +10,7 @@ MAINTAINER Marc Villacorta Morera <marc.villacorta@gmail.com>
 #------------------------------------------------------------------------------
 
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
-RUN apk --no-cache add --update mongodb && rm -rf /var/cache/apk/*
+RUN apk --no-cache add --update bash mongodb && rm -rf /var/cache/apk/*
 
 #------------------------------------------------------------------------------
 # Populate root file system:

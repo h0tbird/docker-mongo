@@ -1,6 +1,39 @@
-#!/bin/sh
+#!/bin/bash
 
-exec mongod \
-  --bind_ip 127.0.0.1 \
-  --port 27017 \
-  --dbpath /var/lib/mongodb "$@"
+#-----------------------------------------------------------------------------
+# Functions:
+#-----------------------------------------------------------------------------
+
+function mutex_lock() {
+
+  while true; do
+
+    LOCK=$(etcdctl get ${ETCD_PATH}/lock 2>/dev/null)
+
+    [ "$?" -eq 4 ] && {
+      etcdctl mk ${ETCD_PATH}/lock '0' &>/dev/null || { sleep 1; continue; }
+    } || { [ "${LOCK}" != 0 ] && etcdctl watch ${ETCD_PATH}/lock &>/dev/null; }
+
+    etcdctl set --swap-with-value '0' ${ETCD_PATH}/lock '1' &>/dev/null && return 0
+    sleep 2
+
+  done
+}
+
+function mutex_unlock() {
+  etcdctl set ${ETCD_PATH}/lock '0'
+}
+
+#-----------------------------------------------------------------------------
+# Configure the service:
+#-----------------------------------------------------------------------------
+
+: ${BIND_IP:=127.0.0.1} && OPTS+="--bind_ip ${BIND_IP} "
+: ${PORT:=27017} && OPTS+="--port ${PORT} "
+: ${DB_PATH:=/var/lib/mongodb} && OPTS+="--dbpath ${DB_PATH} "
+
+#-----------------------------------------------------------------------------
+# Run:
+#-----------------------------------------------------------------------------
+
+exec mongod "$@"
