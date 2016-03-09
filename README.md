@@ -17,3 +17,9 @@ h0tbird/mongo \
 --dbpath /var/lib/mongodb \
 --replSet rs0
 ```
+
+Get and set the bootstrap token:
+```
+etcdctl get /mongo/token
+etcdctl set /mongo/token 0
+```
