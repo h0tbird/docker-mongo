@@ -17,12 +17,12 @@ ENV ETCD_VERSION="v2.2.5" \
 #------------------------------------------------------------------------------
 
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
-    && apk --no-cache add --update -t deps wget \
+    && apk --no-cache add --update -t deps wget ca-certificates \
     && apk --no-cache add --update bash mongodb \
-    && wget -q ${ETCD_URL}/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz \
+    && wget ${ETCD_URL}/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz \
     && tar zxvf etcd-${ETCD_VERSION}-linux-amd64.tar.gz \
-    && mv etcd-${ETCD_VERSION}-linux-amd64/etcdctl /usr/local/bin/ \
-    && apk del --purge deps; rm -rf /var/cache/apk/* etcd-${ETCD_VERSION}-linux-amd64
+    && mv etcd-${ETCD_VERSION}-linux-amd64/etcdctl /usr/bin/ \
+    && apk del --purge deps; rm -rf /var/cache/apk/* etcd-${ETCD_VERSION}-*
 
 #------------------------------------------------------------------------------
 # Populate root file system:
