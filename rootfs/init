@@ -5,6 +5,8 @@
 #-----------------------------------------------------------------------------
 
 : ${ETCD_PATH:=/mongo}
+: ${ETCD_ENDPOINT:=http://127.0.0.1:2379}
+: ${ETCD_BOOT:=false}
 
 #-----------------------------------------------------------------------------
 # Functions:
@@ -12,14 +14,16 @@
 
 function token() {
 
+  local ETCDCTL="etcdctl --endpoint ${ETCD_ENDPOINT}"
+
   while true; do
 
-    TKN=$(etcdctl get ${ETCD_PATH}/token 2>/dev/null); [ "$?" -eq 4 ] && {
-    etcdctl mk ${ETCD_PATH}/token '0' &>/dev/null || { sleep 1; continue; }
+    TKN=$(${ETCDCTL} get ${ETCD_PATH}/token 2>/dev/null); [ "$?" -eq 4 ] && {
+    ${ETCDCTL} mk ${ETCD_PATH}/token '0' &>/dev/null || { sleep 1; continue; }
     } || { [ "${TKN}" != 0 ] && return 1; }
 
-    etcdctl set --swap-with-value '0' ${ETCD_PATH}/token '1' &>/dev/null && return 0
-    sleep 1
+    ${ETCDCTL} set --swap-with-value '0' ${ETCD_PATH}/token '1' &>/dev/null \
+    && return 0; sleep 1
 
   done
 }
@@ -28,8 +32,14 @@ function token() {
 # Get the bootstrap token:
 #-----------------------------------------------------------------------------
 
-token && {
-  echo "Do something..."
+MSG1="[Populate etcd] Attempting to acquire the bootstrap token..."
+MSG2="[Populate etcd] Ok! Token acquired"
+MSG3="[Populate etcd] Someone else owns the token"
+
+[ "${ETCD_BOOT}" == "true" ] && {
+  echo ${MSG1} && token && {
+    echo ${MSG2}
+  } || echo ${MSG3}
 }
 
 #-----------------------------------------------------------------------------

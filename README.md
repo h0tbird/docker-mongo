@@ -8,8 +8,8 @@ Containerized MongoDB service.
 docker run -it --rm \
 --net host --name mongo \
 --env RS_PEERS=foo:27017,bar:27017 \
---env ETCD_IP=127.0.0.1 \
---env ETCD_PORT=2379 \
+--env ETCD_BOOT=true \
+--env ETCD_ENDPOINT=http://127.0.0.1:2379 \
 --env ETCD_PATH=/mongo \
 h0tbird/mongo \
 --bind_ip 127.0.0.1 \
